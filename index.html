@@ -194,7 +194,6 @@
 
         <!-- Game Screen -->
         <div id="gameScreen" class="screen">
-            <div id="gameScore">Score: 0</div>
             <canvas id="gameCanvas" width="400" height="400"></canvas>
         </div>
 
@@ -211,7 +210,6 @@
         const gameState = {
             nickname: '',
             avatar: null,
-            score: 0,
             snake: [],
             food: {},
             direction: { x: 1, y: 0 },
@@ -271,11 +269,9 @@
             ];
             gameState.direction = { x: 1, y: 0 };
             gameState.nextDirection = { x: 1, y: 0 };
-            gameState.score = 0;
             gameState.gameActive = true;
 
             spawnFood();
-            updateScore();
             gameLoop(ctx, gridSize, tileCount);
         }
 
@@ -290,9 +286,6 @@
             };
         }
 
-        function updateScore() {
-            document.getElementById('gameScore').textContent = `Score: ${gameState.score}`;
-        }
 
         function gameLoop(ctx, gridSize, tileCount) {
             if (!gameState.gameActive) return;
@@ -330,8 +323,6 @@
             gameState.snake.unshift(newHead);
 
             if (newHead.x === gameState.food.x && newHead.y === gameState.food.y) {
-                gameState.score += 10;
-                updateScore();
                 spawnFood();
             } else {
                 gameState.snake.pop();
@@ -356,7 +347,6 @@
             gameState.gameActive = false;
             document.getElementById('finalStats').innerHTML = `
                 <p><strong>${gameState.avatar} ${gameState.nickname}</strong></p>
-                <p>Final Score: <strong>${gameState.score}</strong></p>
                 <p>Snake Length: <strong>${gameState.snake.length}</strong></p>
             `;
             showScreen('gameOverScreen');
