@@ -49,7 +49,7 @@
         #startScreen input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             font-size: 16px;
             border: 2px solid #ddd;
             border-radius: 5px;
@@ -58,6 +58,50 @@
         #startScreen input:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .avatar-selector {
+            margin-bottom: 30px;
+        }
+
+        .avatar-selector label {
+            display: block;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .avatar-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .avatar-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            background: white;
+            font-size: 2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-btn:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .avatar-btn.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
         }
 
         #startButton {
@@ -73,6 +117,11 @@
 
         #startButton:hover {
             background: #5568d3;
+        }
+
+        #startButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         /* Game Screen */
@@ -129,8 +178,18 @@
         <!-- Start Screen -->
         <div id="startScreen" class="screen active">
             <h1>🐍 Aether Snake</h1>
-            <input type="text" id="nicknameInput" placeholder="Enter your nickname">
-            <button id="startButton">Start Game</button>
+            <input type="text" id="nicknameInput" placeholder="Enter your nickname" maxlength="20">
+            <div class="avatar-selector">
+                <label>Choose your avatar:</label>
+                <div class="avatar-options">
+                    <button class="avatar-btn" data-avatar="🔴">🔴</button>
+                    <button class="avatar-btn" data-avatar="🟠">🟠</button>
+                    <button class="avatar-btn" data-avatar="🟡">🟡</button>
+                    <button class="avatar-btn" data-avatar="🟢">🟢</button>
+                    <button class="avatar-btn" data-avatar="🔵">🔵</button>
+                </div>
+            </div>
+            <button id="startButton" disabled>Start Game</button>
         </div>
 
         <!-- Game Screen -->
@@ -147,6 +206,195 @@
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script>
+        // Game state
+        const gameState = {
+            nickname: '',
+            avatar: null,
+            score: 0,
+            snake: [],
+            food: {},
+            direction: { x: 1, y: 0 },
+            nextDirection: { x: 1, y: 0 },
+            gameActive: false
+        };
+
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Start Screen Logic
+        const nicknameInput = document.getElementById('nicknameInput');
+        const startButton = document.getElementById('startButton');
+        const avatarButtons = document.querySelectorAll('.avatar-btn');
+
+        function updateStartButtonState() {
+            const hasNickname = nicknameInput.value.trim().length > 0;
+            const hasAvatar = gameState.avatar !== null;
+            startButton.disabled = !(hasNickname && hasAvatar);
+        }
+
+        nicknameInput.addEventListener('input', () => {
+            gameState.nickname = nicknameInput.value.trim();
+            updateStartButtonState();
+        });
+
+        avatarButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                avatarButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                gameState.avatar = btn.dataset.avatar;
+                updateStartButtonState();
+            });
+        });
+
+        startButton.addEventListener('click', () => {
+            if (gameState.nickname && gameState.avatar) {
+                initGame();
+                showScreen('gameScreen');
+            }
+        });
+
+        // Game initialization
+        function initGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const gridSize = 20;
+            const tileCount = canvas.width / gridSize;
+
+            gameState.snake = [
+                { x: Math.floor(tileCount / 2), y: Math.floor(tileCount / 2) }
+            ];
+            gameState.direction = { x: 1, y: 0 };
+            gameState.nextDirection = { x: 1, y: 0 };
+            gameState.score = 0;
+            gameState.gameActive = true;
+
+            spawnFood();
+            updateScore();
+            gameLoop(ctx, gridSize, tileCount);
+        }
+
+        function spawnFood() {
+            const canvas = document.getElementById('gameCanvas');
+            const gridSize = 20;
+            const tileCount = canvas.width / gridSize;
+
+            gameState.food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+        }
+
+        function updateScore() {
+            document.getElementById('gameScore').textContent = `Score: ${gameState.score}`;
+        }
+
+        function gameLoop(ctx, gridSize, tileCount) {
+            if (!gameState.gameActive) return;
+
+            update();
+            render(ctx, gridSize);
+
+            setTimeout(() => gameLoop(ctx, gridSize, tileCount), 100);
+        }
+
+        function update() {
+            gameState.direction = gameState.nextDirection;
+            const head = gameState.snake[0];
+            const newHead = {
+                x: head.x + gameState.direction.x,
+                y: head.y + gameState.direction.y
+            };
+
+            const canvas = document.getElementById('gameCanvas');
+            const gridSize = 20;
+            const tileCount = canvas.width / gridSize;
+
+            if (newHead.x < 0 || newHead.x >= tileCount || newHead.y < 0 || newHead.y >= tileCount) {
+                endGame();
+                return;
+            }
+
+            for (let segment of gameState.snake) {
+                if (newHead.x === segment.x && newHead.y === segment.y) {
+                    endGame();
+                    return;
+                }
+            }
+
+            gameState.snake.unshift(newHead);
+
+            if (newHead.x === gameState.food.x && newHead.y === gameState.food.y) {
+                gameState.score += 10;
+                updateScore();
+                spawnFood();
+            } else {
+                gameState.snake.pop();
+            }
+        }
+
+        function render(ctx, gridSize) {
+            const canvas = document.getElementById('gameCanvas');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#fff';
+            for (let segment of gameState.snake) {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+            }
+
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(gameState.food.x * gridSize, gameState.food.y * gridSize, gridSize - 1, gridSize - 1);
+        }
+
+        function endGame() {
+            gameState.gameActive = false;
+            document.getElementById('finalStats').innerHTML = `
+                <p><strong>${gameState.avatar} ${gameState.nickname}</strong></p>
+                <p>Final Score: <strong>${gameState.score}</strong></p>
+                <p>Snake Length: <strong>${gameState.snake.length}</strong></p>
+            `;
+            showScreen('gameOverScreen');
+        }
+
+        // Game Over Screen Logic
+        document.getElementById('playAgainButton').addEventListener('click', () => {
+            nicknameInput.value = '';
+            gameState.nickname = '';
+            gameState.avatar = null;
+            avatarButtons.forEach(btn => btn.classList.remove('selected'));
+            updateStartButtonState();
+            showScreen('startScreen');
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.gameActive) return;
+
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (gameState.direction.y === 0) gameState.nextDirection = { x: 0, y: -1 };
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    if (gameState.direction.y === 0) gameState.nextDirection = { x: 0, y: 1 };
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    if (gameState.direction.x === 0) gameState.nextDirection = { x: -1, y: 0 };
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    if (gameState.direction.x === 0) gameState.nextDirection = { x: 1, y: 0 };
+                    e.preventDefault();
+                    break;
+            }
+        });
+    </script>
 </body>
 </html>
