@@ -1,15 +1,27 @@
 {
-  "permissions": [
-    {
-      "match": "npm test",
-      "behavior": "allow"
-    }
-  ],
-  "hooks": [
-    {
-      "event": "edit",
-      "match": "tests/",
-      "behavior": "ask"
-    }
-  ]
+  "permissions": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "behavior": "allow"
+      }
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm test",
+            "onFailure": {
+              "behavior": "report",
+              "exitCode": 2
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
