@@ -46,6 +46,44 @@
             font-size: 2.5em;
         }
 
+        .profile-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar-img,
+        .profile-avatar-fallback {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .profile-avatar-img {
+            object-fit: cover;
+            display: block;
+        }
+
+        .profile-avatar-fallback {
+            display: none;
+            background: #667eea;
+            color: white;
+            font-size: 1.6em;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
         #startScreen input {
             width: 100%;
             padding: 12px;
@@ -215,6 +253,11 @@
         <!-- Start Screen -->
         <div id="startScreen" class="screen active">
             <h1>🐍 Aether Snake</h1>
+            <div class="profile-badge">
+                <img id="profileAvatarImg" class="profile-avatar-img" src="assets/me.png" alt="Sunil">
+                <div id="profileAvatarFallback" class="profile-avatar-fallback" aria-hidden="true">S</div>
+                <span class="profile-name">Sunil</span>
+            </div>
             <input type="text" id="nicknameInput" placeholder="Enter your nickname" maxlength="20">
             <div class="avatar-selector">
                 <label>Choose your avatar:</label>
@@ -261,6 +304,15 @@
             });
             document.getElementById(screenId).classList.add('active');
         }
+
+        // Profile badge: static display of the current player's picture/name.
+        const profileAvatarImg = document.getElementById('profileAvatarImg');
+        const profileAvatarFallback = document.getElementById('profileAvatarFallback');
+
+        profileAvatarImg.addEventListener('error', () => {
+            profileAvatarImg.style.display = 'none';
+            profileAvatarFallback.style.display = 'flex';
+        });
 
         // Start Screen Logic
         const nicknameInput = document.getElementById('nicknameInput');
