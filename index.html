@@ -406,19 +406,19 @@
 
             switch(e.key) {
                 case 'ArrowUp':
-                    if (gameState.direction.y === 0) gameState.nextDirection = { x: 0, y: -1 };
+                    gameState.nextDirection = { x: 0, y: -1 };
                     e.preventDefault();
                     break;
                 case 'ArrowDown':
-                    if (gameState.direction.y === 0) gameState.nextDirection = { x: 0, y: 1 };
+                    gameState.nextDirection = { x: 0, y: 1 };
                     e.preventDefault();
                     break;
                 case 'ArrowLeft':
-                    if (gameState.direction.x === 0) gameState.nextDirection = { x: -1, y: 0 };
+                    gameState.nextDirection = { x: -1, y: 0 };
                     e.preventDefault();
                     break;
                 case 'ArrowRight':
-                    if (gameState.direction.x === 0) gameState.nextDirection = { x: 1, y: 0 };
+                    gameState.nextDirection = { x: 1, y: 0 };
                     e.preventDefault();
                     break;
             }
