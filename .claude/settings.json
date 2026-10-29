@@ -1,0 +1,15 @@
+{
+  "permissions": [
+    {
+      "match": "npm test",
+      "behavior": "allow"
+    }
+  ],
+  "hooks": [
+    {
+      "event": "edit",
+      "match": "tests/",
+      "behavior": "ask"
+    }
+  ]
+}
